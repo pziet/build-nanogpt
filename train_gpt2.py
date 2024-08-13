@@ -275,6 +275,29 @@ def get_most_likely_row(tokens, mask, logits):
     return pred_norm
 
 # -----------------------------------------------------------------------------
+# import argparse
+
+# def parse_args():
+#     parser = argparse.ArgumentParser(description="Train GPT model")
+#     parser.add_argument('--resume', type=str, default=None, help='Path to checkpoint to resume from')
+#     parser.add_argument('--save-interval', type=int, default=5000, help='Save checkpoint every N steps')
+#     parser.add_argument('--output-dir', type=str, default='log', help='Directory to save checkpoints and logs')
+#     return parser.parse_args()
+
+# def load_checkpoint(checkpoint_path, model, optimizer, device):
+#     print(f"Loading checkpoint from {checkpoint_path}")
+#     checkpoint = torch.load(checkpoint_path, map_location=device)
+#     model.load_state_dict(checkpoint['model'])
+#     optimizer.load_state_dict(checkpoint['optimizer'])
+#     start_step = checkpoint['step']
+#     return model, optimizer, start_step
+
+# In the main script:
+# args = parse_args()
+# log_dir = args.output_dir
+# os.makedirs(log_dir, exist_ok=True)
+
+# -----------------------------------------------------------------------------
 # simple launch:
 # python train_gpt2.py
 # DDP launch for e.g. 8 GPUs:
@@ -337,6 +360,13 @@ torch.set_float32_matmul_precision('high')
 
 # create model
 model = GPT(GPTConfig(vocab_size=50304))
+# if False: 
+# model.to(device) 
+# optimizer = raw_model.configure_optimizers(weight_decay=0.1, learning_rate=6e-4, device_type=device_type)
+# start_step = 0
+# if args.resume:
+#     model, optimizer, start_step = load_checkpoint(args.resume, model, optimizer, device)
+
 # model = GPT.from_pretrained("gpt2") # or init from OpenAI GPT-2
 model.to(device)
 use_compile = False # torch.compile interferes with HellaSwag eval and Generation. TODO fix
@@ -373,6 +403,7 @@ log_file = os.path.join(log_dir, f"log.txt")
 with open(log_file, "w") as f: # open for writing to clear the file
     pass
 
+# for step in range(start_step, max_steps):
 for step in range(max_steps):
     t0 = time.time()
     last_step = (step == max_steps - 1)
@@ -397,18 +428,27 @@ for step in range(max_steps):
             print(f"validation loss: {val_loss_accum.item():.4f}")
             with open(log_file, "a") as f:
                 f.write(f"{step} val {val_loss_accum.item():.4f}\n")
+            # if step > 0 and (step % args.save_interval == 0 or last_step):
+            #     checkpoint_path = os.path.join(log_dir, f"model_{step:05d}.pt")
+            #     checkpoint = {
+            #         'model': raw_model.state_dict(),
+            #         'optimizer': optimizer.state_dict(),
+            #         'config': raw_model.config,
+            #         'step': step,
+            #         'val_loss': val_loss_accum.item()
+            #     }
+            #     torch.save(checkpoint, checkpoint_path)
+            #     print(f"Saved checkpoint to {checkpoint_path}")
             if step > 0 and (step % 5000 == 0 or last_step):
                 # optionally write model checkpoints
                 checkpoint_path = os.path.join(log_dir, f"model_{step:05d}.pt")
                 checkpoint = {
                     'model': raw_model.state_dict(),
-                    'optimizer': optimizer.state_dict(),
+                    'optimizer': optimizer.state_dict(), # allows for exact resumption of training
                     'config': raw_model.config,
                     'step': step,
                     'val_loss': val_loss_accum.item()
                 }
-                # you might also want to add optimizer.state_dict() and
-                # rng seeds etc., if you wanted to more exactly resume training
                 torch.save(checkpoint, checkpoint_path)
 
     # once in a while evaluate hellaswag
