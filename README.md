@@ -1,3 +1,22 @@
+# Comments from [patrickmziet](https://patrickmziet.github.io/index.html)
+
+I have forked this repository and am using the base model (GPT-2 124M parameters) to explore some ideas. Specifically, 
+    
+    1. [Guaranteeing JSON output from GPT-2](https://youtu.be/HX5BCtUexo8?si=yj9mrwVfypco9dPI)
+    
+    I make GPT-2 generate output in JSON, and do this by fixing tokens to be parts of the JSON schema (the "keys") and then only generating the "values" of the key:value pairs. Compared with other methods which make repeated calls to the LLM and dynamically build the prompt, we only make *one* call to the LLM seeing as we have direct access to the model.
+    Post-mortem:
+    - Really bad LLMs (i.e. in the way GPT-2 is worse than GPT-3) are better for testing since they are less likely to "obey" JSON schema, or any other structure. So your code has to be more robust to account for it. For example, GPT-4 might not need any of the additional code I wrote to handle the LLMs' output.
+    - You can enforce any output structure in the same way I have done here.
+    - Batch processing output could is more complicated as you may have the output sequences building at different rates.
+
+    More Details:
+        - Jupyter Notebook: [https://github.com/patrickmziet/build-nanogpt/blob/master/json.ipynb](https://github.com/patrickmziet/build-nanogpt/blob/master/json.ipynb)
+        - JSON function: [https://github.com/patrickmziet/build-nanogpt/blob/master/gpt_json.py](https://github.com/patrickmziet/build-nanogpt/blob/master/gpt_json.py)
+        - Model details: 124M parameter Transformer model trained on 10B tokens using 8xA100 GPUs, i.e GPT-2. Followed Andrej Karpathy's tutorial: [https://youtu.be/l8pRSuU81PU?si=4iZ5YLJ0Ew-lP3S4](https://youtu.be/l8pRSuU81PU?si=4iZ5YLJ0Ew-lP3S4) and repo: [https://github.com/karpathy/build-nanogpt](https://github.com/karpathy/build-nanogpt)
+        - Jsonformer: [https://github.com/1rgs/jsonformer/tree/main](https://github.com/1rgs/jsonformer/tree/main)
+
+
 # build nanoGPT
 
 This repo holds the from-scratch reproduction of [nanoGPT](https://github.com/karpathy/nanoGPT/tree/master). The git commits were specifically kept step by step and clean so that one can easily walk through the git commit history to see it built slowly. Additionally, there is an accompanying [video lecture on YouTube](https://youtu.be/l8pRSuU81PU) where you can see me introduce each commit and explain the pieces along the way.
