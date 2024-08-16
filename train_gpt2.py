@@ -329,7 +329,7 @@ else:
     master_process = True
     # attempt to autodetect device
     device = "cpu"
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and False:
         device = "cuda"
     elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         device = "mps"
