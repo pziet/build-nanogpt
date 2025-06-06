@@ -1,4 +1,4 @@
-# Comments from [patrickmziet](https://patrickmziet.github.io/index.html)
+# Comments from [pziet](http://pziet.com/)
 
 I have forked this repository and am using the base model (GPT-2 124M parameters) to explore some ideas. Specifically, 
     
